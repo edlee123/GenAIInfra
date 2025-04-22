@@ -10,11 +10,10 @@ replicaCount: 1
 image:
   repository: opea/chatqna
   # Uncomment the following line to set desired image pull policy if needed, as one of Always, IfNotPresent, Never.
-  # pullPolicy: ""
+  pullPolicy: "IfNotPresent"
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "1.2"
 
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
@@ -35,7 +34,7 @@ podSecurityContext: {}
   # fsGroup: 2000
 
 securityContext:
-  readOnlyRootFilesystem: true
+  readOnlyRootFilesystem: false
   allowPrivilegeEscalation: false
   runAsNonRoot: true
   runAsUser: 1000
@@ -168,11 +167,13 @@ global:
   # service account name to be shared with all parent/child charts.
   # If set, it will overwrite serviceAccount.name.
   # If set, and serviceAccount.create is false, it will assume this service account is already created by others.
-  sharedSAName: "chatqna"
+  sharedSAName: "ed-chatqna"
   # set modelUseHostPath or modelUsePVC to use model cache.
-  modelUseHostPath: ""
+  #modelUseHostPath: "/mnt/opea-models"
   # modelUseHostPath: /mnt/opea-models
-  # modelUsePVC: model-volume
+  modelUsePVC: model-volume
+  imagePullSecrets:
+    - name: regcred
 
   # Prometheus monitoring + Grafana dashboard(s) for service components?
   monitoring: false

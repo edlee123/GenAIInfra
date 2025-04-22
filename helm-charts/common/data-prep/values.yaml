@@ -56,7 +56,6 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
-imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
@@ -110,8 +109,8 @@ startupProbe:
   httpGet:
     path: v1/health_check
     port: data-prep
-  initialDelaySeconds: 5
-  periodSeconds: 5
+  initialDelaySeconds: 30
+  periodSeconds: 15
   failureThreshold: 120
 
 nodeSelector: {}

@@ -24,11 +24,9 @@ spec:
         {{- include "chatqna.selectorLabels" . | nindent 8 }}
         app: {{ include "chatqna.fullname" . }}
     spec:
-      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "chatqna.serviceAccountName" . }}
+      - name: regcred
+      serviceAccountName: ed-chatqna
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -46,7 +44,8 @@ spec:
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
-              value: "80"
+              {{/*Ed: modified to 8080*/}}
+              value: "8080"
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
@@ -56,7 +55,8 @@ spec:
             - name: RERANK_SERVER_HOST_IP
               value: {{ .Release.Name }}-teirerank
             - name: RERANK_SERVER_PORT
-              value: "80"
+              {{/*Ed: modified to 8080*/}}
+              value: "8080"
             - name: RETRIEVER_SERVICE_HOST_IP
               value: {{ .Release.Name }}-retriever-usvc
             - name: RETRIEVER_SERVICE_PORT
@@ -64,7 +64,8 @@ spec:
             - name: EMBEDDING_SERVER_HOST_IP
               value: {{ .Release.Name }}-tei
             - name: EMBEDDING_SERVER_PORT
-              value: "80"
+              {{/*Ed: modified to 8080*/}}
+              value: "8080"
             - name: GUARDRAIL_SERVICE_HOST_IP
               value: {{ .Release.Name }}-guardrails-usvc
             - name: GUARDRAIL_SERVICE_PORT
@@ -91,6 +92,14 @@ spec:
             {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            {{- if .Values.securityContext.privileged }}
+            privileged: true
+            {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{- if .Values.image.pullPolicy }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
