@@ -43,6 +43,7 @@ securityContext:
     - ALL
   seccompProfile:
     type: RuntimeDefault
+  privileged: true
 
 port: 8888
 service:
@@ -171,8 +172,10 @@ global:
   # set modelUseHostPath or modelUsePVC to use model cache.
   #modelUseHostPath: "/mnt/opea-models"
   # modelUseHostPath: /mnt/opea-models
-  modelUsePVC: model-volume
+  # modelUsePVC: model-volume
+  
   imagePullSecrets:
+  # For docker hub pulling images without hitting rate limit.
     - name: regcred
 
   # Prometheus monitoring + Grafana dashboard(s) for service components?
