@@ -8,7 +8,7 @@
 replicaCount: 1
 
 image:
-  repository: opea/chatqna
+  repository: opea/chatqna-ui
   # Uncomment the following line to set desired image pull policy if needed, as one of Always, IfNotPresent, Never.
   pullPolicy: "IfNotPresent"
   # Overrides the image tag whose default is the chart appVersion.
@@ -37,13 +37,19 @@ securityContext:
   readOnlyRootFilesystem: false
   allowPrivilegeEscalation: false
   runAsNonRoot: true
-  runAsUser: 1000
+  # The chatqna-ui requires this user id and group to run.
+  runAsUser: 1001080000
+  runAsGroup: 0
+  # fsGroup: 0
+
   capabilities:
     drop:
     - ALL
   seccompProfile:
     type: RuntimeDefault
-  privileged: true
+  # Below false works when combined with privileged oc account.
+  # oc adm policy add-scc-to-user privileged -z <my service account> -n <my namespace>
+  privileged: false
 
 port: 8888
 service:
@@ -146,16 +152,28 @@ reranking-usvc:
   enabled: false
   RERANK_BACKEND: "TEI"
 
+# Below imagePullSecrets is required for pulling images from private docker registry.
 nginx:
   service:
     type: NodePort
+  imagePullSecrets:
+    - name: regcred
 
 # Uncomment the following lines
 chatqna-ui:
   image:
     repository: opea/chatqna-ui
-    tag: "latest"
+    tag: "1.2"
   containerPort: "5173"
+  imagePullSecrets:
+    - name: regcred
+
+data-prep:
+    imagePullSecrets:
+      - name: regcred
+retriever-usvc:
+    imagePullSecrets:
+      - name: regcred
 
 dashboard:
   prefix: "OPEA ChatQnA"
@@ -164,7 +182,7 @@ global:
   http_proxy: ""
   https_proxy: ""
   no_proxy: ""
-  HUGGINGFACEHUB_API_TOKEN: "insert-your-huggingface-token-here"
+  HUGGINGFACEHUB_API_TOKEN: ""
   # service account name to be shared with all parent/child charts.
   # If set, it will overwrite serviceAccount.name.
   # If set, and serviceAccount.create is false, it will assume this service account is already created by others.
@@ -172,12 +190,11 @@ global:
   # set modelUseHostPath or modelUsePVC to use model cache.
   #modelUseHostPath: "/mnt/opea-models"
   # modelUseHostPath: /mnt/opea-models
-  # modelUsePVC: model-volume
-  
-  imagePullSecrets:
-  # For docker hub pulling images without hitting rate limit.
-    - name: regcred
+  modelUsePVC: model-volume
 
+  # imagePullSecrets:
+  # # For docker hub pulling images without hitting rate limit.
+  #   - name: regcred
   # Prometheus monitoring + Grafana dashboard(s) for service components?
   monitoring: false
 

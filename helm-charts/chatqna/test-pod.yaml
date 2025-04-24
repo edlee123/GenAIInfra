@@ -2,15 +2,22 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: test-image-pull
+
 spec:
 # https://hub.docker.com/layers/opea/chatqna/1.2/images/sha256-12847afc4597ad608cb505ccdf417be2df9fa77d7459fae61ff95515e0e1b38c
 # Note the docker hub tags are different from github tags!
   containers:
   - name: busybox
-    image: opea/chatqna:1.2  # Replace with your image and tag
+    image: opea/chatqna-ui:latest  # Replace with your image and tag
     command: ["/bin/sh", "-c", "sleep 3600"]
   imagePullSecrets:
   - name: regcred # Replace with your secret name
 
-
   
+
+# opea/dataprep:latest
+# opea/chatqna-ui:latest
+# opea/nginx:latest
+# opea/retriever:latest
+
+# pvc model-volume not found.

@@ -107,6 +107,22 @@ sudo systemctl restart nfs-server
 
 ```
 
+
+- Export NFS directory in Redhat
+```
+sudo dnf update
+sudo dnf install rpcbind nfs-utils -y
+sudo systemctl enable rpcbind
+sudo systemctl enable nfs-server
+sudo firewall-cmd --permanent --add-service={nfs,rpc-bind,mountd}
+sudo firewall-cmd --reload
+sudo mkdir -p /data/nfspv
+sudo chmod 777 -R /data/
+echo "/data/nfspv 192.168.0.0/24(rw,sync,no_subtree_check)" |sudo tee -a /etc/exports
+
+```
+
+
 - Create a Persistent Volume
 
 ```
@@ -121,7 +137,8 @@ spec:
   volumeMode: Filesystem
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
+  # Can use Retain if you want to keep this volume.
+  persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   nfs:
     path: "/data/nfspv"

@@ -29,6 +29,37 @@ spec:
       serviceAccountName: ed-chatqna
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      - name: model-downloader
+        image: huggingface/downloader:0.17.3
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "echo 'Huggingface log in ...'; huggingface-cli login --token $(HF_TOKEN); echo 'Download model BAAI/bge-reranker-base ... '; huggingface-cli download --cache-dir /data 'BAAI/bge-reranker-base'; echo 'Change model files mode ...'; chmod -R g+w /data/models--BAAI--bge-reranker-base; sudo chown -R 1001080000:0 '/.npm'"]
+        envFrom:
+        - configMapRef:
+            name: ed-chatqna-tei-config
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - DAC_OVERRIDE
+            - FOWNER
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 0
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: model-volume
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-xdcqf
+          readOnly: true
       containers:
         - name: {{ .Release.Name }}
           env:
@@ -38,9 +69,9 @@ spec:
               value: {{ .Release.Name }}-llm-uservice
               {{- else }}
               {{- if .Values.vllm.enabled }}
-              value: {{ .Release.Name }}-vllm
+              value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
               {{- else }}
-              value: {{ .Release.Name }}-tgi
+              value: {{ .Values.tgi.LLM_MODEL_ID | quote }}
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
@@ -92,6 +123,8 @@ spec:
             {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+            runAsUser: 1001080000
+            runAsGroup: 0
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{- if .Values.image.pullPolicy }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -108,6 +141,32 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: model-volume
+        - name: kube-api-access-xdcqf
+          projected:
+            defaultMode: 420
+            sources:
+            - serviceAccountToken:
+                expirationSeconds: 3607
+                path: token
+            - configMap:
+                items:
+                - key: ca.crt
+                  path: ca.crt
+                name: kube-root-ca.crt
+            - downwardAPI:
+                items:
+                - fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+                  path: namespace
+            - configMap:
+                items:
+                - key: service-ca.crt
+                  path: service-ca.crt
+                name: openshift-service-ca.crt
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
