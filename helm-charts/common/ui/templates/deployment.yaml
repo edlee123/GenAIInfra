@@ -66,8 +66,12 @@ spec:
           volumeMounts:
             - mountPath: /tmp
               name: tmp
+            - mountPath: /.npm
+              name: npm-cache
       volumes:
         - name: tmp
+          emptyDir: {}
+        - name: npm-cache
           emptyDir: {}
       {{- with .Values.nodeSelector }}
       nodeSelector:
