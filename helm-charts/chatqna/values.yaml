@@ -9,9 +9,6 @@ replicaCount: 1
 
 image:
   repository: opea/chatqna-ui
-#   # Uncomment the following line to set desired image pull policy if needed, as one of Always, IfNotPresent, Never.
-#   pullPolicy: "IfNotPresent"
-#   # Overrides the image tag whose default is the chart appVersion.
   tag: "1.2"
 
 nameOverride: ""
@@ -47,7 +44,18 @@ securityContext:
   # oc adm policy add-scc-to-user privileged -z <my service account> -n <my namespace>
   privileged: false
 
-# Container port
+
+# ModelCar endpoints configuration (commented out until ModelCar is available)
+# If uncommented will override the default endpoints for LLM, embedding, and reranker in deployment_modelcar.yaml
+# modelcar:
+#   endpoints:
+#     llm:
+#       host: "granite-predictor-00001.ed-opea-modelcar.svc.cluster.local"
+#       port: "80"
+
+
+# service port -> container port (aka. targetPort)
+# Container port - using containerPorts reference
 port: 8888
 service:
   type: ClusterIP
@@ -64,8 +72,6 @@ affinity: {}
 autoscaling:
   enabled: false
 
-
-
 # Optional subcharts enablement and subcharts settings overwritten
 # LLM choice, tgi by default.
 tgi:
@@ -73,10 +79,18 @@ tgi:
   LLM_MODEL_ID: meta-llama/Meta-Llama-3-8B-Instruct
 vllm:
   # Default is vllm
-  enabled: false
+  enabled: true
   LLM_MODEL_ID: meta-llama/Meta-Llama-3-8B-Instruct
+  port: 8000 # container port
   shmSize: 128Gi
   VLLM_TORCH_PROFILER_DIR: "/tmp/vllm_profile"
+tei:
+  enabled: true
+  port: 2081 # container port
+teirerank:
+  enabled: true
+  port: 2082 # container port
+
 data-prep:
   # the following are for redis-vector-db
   DATAPREP_BACKEND: "REDIS"
@@ -86,6 +100,7 @@ data-prep:
   QDRANT_PORT: 6333
   # the following are for milvus db
   MILVUS_PORT: 19530
+
 retriever-usvc:
   # the following are for redis-vector-db
   RETRIEVER_BACKEND: "REDIS"
@@ -95,38 +110,22 @@ retriever-usvc:
   QDRANT_PORT: 6333
   # the following are for milvus db
   MILVUS_PORT: 19530
-teirerank:
-  enabled: true
-  port: 2082
 
-
-# ModelCar endpoints configuration (commented out until ModelCar is available)
-# If uncommented will override the default endpoints for LLM, embedding, and reranker in deployment_modelcar.yaml
-modelcar:
-  endpoints:
-    llm:
-      host: "granite-predictor-00001.ed-opea-modelcar.svc.cluster.local"
-      port: "80"
-
-
-# Woudl create values files per compute x model combinations.
-# export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
-# export RERANK_MODEL_ID="BAAI/bge-reranker-base"
-
-
-# vector db choice
-# redis by default.
 redis-vector-db:
+  # redis by default.
   enabled: true
-# qdrant, disabled by default
+  port: 6379
 qdrant:
+  # qdrant, disabled by default
   enabled: false
+  port: 6333
   tag: "v1.13.1"
   config:
     cluster:
       enabled: false
 milvus:
   enabled: false
+  port: 19530
   # Milvus config for standalone mode with no PVC which has minimum requirements for the K8s cluster.
   # Check https://github.com/zilliztech/milvus-helm/tree/milvus-4.2.12/charts/milvus for more production level configuration.
   cluster:
@@ -144,6 +143,7 @@ milvus:
   standalone:
     persistence:
       enabled: false
+
 # Microservice layer, disabled by default
 llm-uservice:
   enabled: false
@@ -156,18 +156,18 @@ reranking-usvc:
   enabled: false
   RERANK_BACKEND: "TEI"
 
-# Below imagePullSecrets is required for pulling images from private docker registry.
 nginx:
+  port: 8080 # container port
   service:
     type: NodePort
+    # port: 8080 # service port
 
-# Uncomment the following lines
 chatqna-ui:
   image:
     # modified image for redhat security
     repository: edlee123/chatqna-ui
     tag: "latest"
-  containerPort: "5173"
+  containerPort: 5173
 
 # disable guardrails by default
 # See guardrails-values.yaml for guardrail related options
@@ -186,7 +186,6 @@ global:
   HUGGINGFACEHUB_API_TOKEN: ""
   imagePullSecrets:
     - name: regcred
-  
 
   # service account name to be shared with all parent/child charts.
   # If set, it will overwrite serviceAccount.name.
@@ -194,12 +193,8 @@ global:
   sharedSAName: "ed-chatqna"
   # set modelUseHostPath or modelUsePVC to use model cache.
   # modelUseHostPath: "/mnt/opea-models"
-  # modelUseHostPath: /mnt/opea-models
   modelUsePVC: model-volume
 
-  # imagePullSecrets:
-  # # For docker hub pulling images without hitting rate limit.
-  #   - name: regcred
   # Prometheus monitoring + Grafana dashboard(s) for service components?
   monitoring: false
 

@@ -46,25 +46,23 @@ spec:
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
-              value: "80"
-#              value: "8080"
-                   # Modified to support ModelCar endpoints
+              value: "8080"  # Changed from 80
               {{- if .Values.modelcar }}
               {{- if .Values.modelcar.endpoints }}
               {{- if .Values.modelcar.endpoints.llm }}
               {{- if .Values.modelcar.endpoints.llm.port }}
               value: {{ .Values.modelcar.endpoints.llm.port | quote }}
               {{- else }}
-              value: "80"
+              value: "8080"  # Changed from 80
               {{- end }}
               {{- else }}
-              value: "80"
+              value: "8080"  # Changed from 80
               {{- end }}
               {{- else }}
-              value: "80"
+              value: "8080"  # Changed from 80
               {{- end }}
               {{- else }}
-              value: "80"
+              value: "8080"  # Changed from 80
               {{- end }}
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}

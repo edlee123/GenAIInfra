@@ -102,7 +102,7 @@ spec:
               name: tokenizer
           ports:
             - name: http
-              containerPort: {{ .Values.port }}
+              containerPort: 8080  # Changed from 80
               protocol: TCP
           {{- if .Values.livenessProbe }}
           livenessProbe:

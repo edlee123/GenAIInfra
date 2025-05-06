@@ -49,8 +49,8 @@ securityContext: {}
   #   type: RuntimeDefault
 
 # internal container port
-# conventional ui container port: 5173, conversational ui container port: 80
-containerPort: 80
+# conventional ui container port: 5173, conversational ui container port: 8080 (changed from 80)
+containerPort: 8080
 
 service:
   type: ClusterIP

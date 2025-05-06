@@ -96,7 +96,7 @@ spec:
             - "--host"
             - "0.0.0.0"
             - "--port"
-            - {{ .Values.port | quote }}
+            - "8000"
             - "--download-dir"
             - "/data"
           volumeMounts:
@@ -108,7 +108,7 @@ spec:
               name: tmp
           ports:
             - name: http
-              containerPort: {{ .Values.port }}
+              containerPort: 8000
               protocol: TCP
           {{- if .Values.livenessProbe }}
           livenessProbe:

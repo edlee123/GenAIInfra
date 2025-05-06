@@ -10,7 +10,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    # Changed the default to 8080 for redhat non-privileged access.
+    - port: {{ .Values.service.port | default 8080 }}
       targetPort: nginx
       protocol: TCP
       name: nginx

@@ -10,8 +10,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.port }}
+    - port: {{ .Values.service.port | default 8080 }}
+      targetPort: {{ .Values.port | default 8080 }}
       protocol: TCP
       name: chatqna
   selector:
