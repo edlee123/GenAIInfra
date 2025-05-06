@@ -7,12 +7,12 @@
 
 replicaCount: 1
 
-# image:
-#   repository: opea/chatqna-ui
+image:
+  repository: opea/chatqna-ui
 #   # Uncomment the following line to set desired image pull policy if needed, as one of Always, IfNotPresent, Never.
 #   pullPolicy: "IfNotPresent"
 #   # Overrides the image tag whose default is the chart appVersion.
-#   tag: "1.2"
+  tag: "1.2"
 
 nameOverride: ""
 fullnameOverride: ""
@@ -64,13 +64,16 @@ affinity: {}
 autoscaling:
   enabled: false
 
+
+
 # Optional subcharts enablement and subcharts settings overwritten
 # LLM choice, tgi by default.
 tgi:
   enabled: false
   LLM_MODEL_ID: meta-llama/Meta-Llama-3-8B-Instruct
 vllm:
-  enabled: true
+  # Default is vllm
+  enabled: false
   LLM_MODEL_ID: meta-llama/Meta-Llama-3-8B-Instruct
   shmSize: 128Gi
   VLLM_TORCH_PROFILER_DIR: "/tmp/vllm_profile"
@@ -92,18 +95,24 @@ retriever-usvc:
   QDRANT_PORT: 6333
   # the following are for milvus db
   MILVUS_PORT: 19530
-
-
-# disable guardrails by default
-# See guardrails-values.yaml for guardrail related options
-guardrails-usvc:
-  enabled: false
-tgi-guardrails:
-  enabled: false
-
-# reranking
 teirerank:
   enabled: true
+  port: 2082
+
+
+# ModelCar endpoints configuration (commented out until ModelCar is available)
+# If uncommented will override the default endpoints for LLM, embedding, and reranker in deployment_modelcar.yaml
+modelcar:
+  endpoints:
+    llm:
+      host: "granite-predictor-00001.ed-opea-modelcar.svc.cluster.local"
+      port: "80"
+
+
+# Woudl create values files per compute x model combinations.
+# export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
+# export RERANK_MODEL_ID="BAAI/bge-reranker-base"
+
 
 # vector db choice
 # redis by default.
@@ -135,8 +144,6 @@ milvus:
   standalone:
     persistence:
       enabled: false
-
-
 # Microservice layer, disabled by default
 llm-uservice:
   enabled: false
@@ -153,8 +160,6 @@ reranking-usvc:
 nginx:
   service:
     type: NodePort
-  imagePullSecrets:
-    - name: regcred
 
 # Uncomment the following lines
 chatqna-ui:
@@ -163,18 +168,13 @@ chatqna-ui:
     repository: edlee123/chatqna-ui
     tag: "latest"
   containerPort: "5173"
-  imagePullSecrets:
-    - name: regcred
 
-data-prep:
-    # Check for redhat security
-    imagePullSecrets:
-      - name: regcred
-
-retriever-usvc:
-  # Check for redhat security
-    imagePullSecrets:
-      - name: regcred
+# disable guardrails by default
+# See guardrails-values.yaml for guardrail related options
+guardrails-usvc:
+  enabled: false
+tgi-guardrails:
+  enabled: false
 
 dashboard:
   prefix: "OPEA ChatQnA"
@@ -184,14 +184,18 @@ global:
   https_proxy: ""
   no_proxy: ""
   HUGGINGFACEHUB_API_TOKEN: ""
+  imagePullSecrets:
+    - name: regcred
+  
+
   # service account name to be shared with all parent/child charts.
   # If set, it will overwrite serviceAccount.name.
   # If set, and serviceAccount.create is false, it will assume this service account is already created by others.
   sharedSAName: "ed-chatqna"
   # set modelUseHostPath or modelUsePVC to use model cache.
   # modelUseHostPath: "/mnt/opea-models"
-  modelUseHostPath: /mnt/opea-models
-  # modelUsePVC: model-volume
+  # modelUseHostPath: /mnt/opea-models
+  modelUsePVC: model-volume
 
   # imagePullSecrets:
   # # For docker hub pulling images without hitting rate limit.

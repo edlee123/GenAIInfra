@@ -47,6 +47,25 @@ spec:
               {{- end }}
             - name: LLM_SERVER_PORT
               value: "80"
+#              value: "8080"
+                   # Modified to support ModelCar endpoints
+              {{- if .Values.modelcar }}
+              {{- if .Values.modelcar.endpoints }}
+              {{- if .Values.modelcar.endpoints.llm }}
+              {{- if .Values.modelcar.endpoints.llm.port }}
+              value: {{ .Values.modelcar.endpoints.llm.port | quote }}
+              {{- else }}
+              value: "80"
+              {{- end }}
+              {{- else }}
+              value: "80"
+              {{- end }}
+              {{- else }}
+              value: "80"
+              {{- end }}
+              {{- else }}
+              value: "80"
+              {{- end }}
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
@@ -56,7 +75,8 @@ spec:
             - name: RERANK_SERVER_HOST_IP
               value: {{ .Release.Name }}-teirerank
             - name: RERANK_SERVER_PORT
-              value: "80"
+              # value: "8080"
+              value: "2082"
             - name: RETRIEVER_SERVICE_HOST_IP
               value: {{ .Release.Name }}-retriever-usvc
             - name: RETRIEVER_SERVICE_PORT
@@ -64,7 +84,8 @@ spec:
             - name: EMBEDDING_SERVER_HOST_IP
               value: {{ .Release.Name }}-tei
             - name: EMBEDDING_SERVER_PORT
-              value: "80"
+              # value: "8080"
+              value: "2081"
             - name: GUARDRAIL_SERVICE_HOST_IP
               value: {{ .Release.Name }}-guardrails-usvc
             - name: GUARDRAIL_SERVICE_PORT
@@ -76,11 +97,13 @@ spec:
             - name: RERANK_SERVICE_HOST_IP
               value: {{ .Release.Name }}-reranking-usvc
             - name: RERANK_SERVICE_PORT
-              value: "8000"
+              #value: "8000"
+              value: "2082"
             - name: EMBEDDING_SERVICE_HOST_IP
               value: {{ .Release.Name }}-embedding-usvc
             - name: EMBEDDING_SERVICE_PORT
-              value: "6000"
+              # value: "6000"
+              value: "2082"
             {{- if .Values.LOGFLAG }}
             - name: LOGFLAG
               value: {{ .Values.LOGFLAG | quote }}

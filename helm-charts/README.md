@@ -109,6 +109,9 @@ sudo systemctl restart nfs-server
 
 - Create a Persistent Volume
 
+Note: if you are on Redhat and already have nfs-engg storageClassName, you may skip this step.
+
+
 ```
 cat <<EOF >nfspv.yaml
 apiVersion: v1
@@ -133,6 +136,8 @@ kubectl apply -f nfspv.yaml
 
 - Create a PersistentVolumeClaim
 
+Note: below assumes you have storageClassName called nfs-engg.
+
 ```
 cat << EOF > nfspvc.yaml
 apiVersion: v1
@@ -142,7 +147,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: "nfs"
+  storageClassName: "nfs-engg"
   resources:
     requests:
       storage: 100Gi
