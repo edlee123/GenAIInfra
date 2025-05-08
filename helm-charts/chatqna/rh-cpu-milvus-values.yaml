@@ -163,14 +163,14 @@ chatqna-ui:
     tag: "latest"
   containerPort: 5173
 
-# Main chatqna configuration
+# Main chatqna configuration (megaservice)
 image:
   repository: opea/chatqna
   tag: "1.2"
 
 # Add security context and volumes for npm cache
-# We'd resolved this for the chatqna-ui before
-# This is for the megaservice chatqna.
+# We'd resolved this for the chatqna-ui and this
+# is for the megaservice chatqna.
 podSecurityContext:
   fsGroup: 1001080000
 securityContext:
