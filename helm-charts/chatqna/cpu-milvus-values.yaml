@@ -1,14 +1,63 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# LLM Configuration - Using vLLM
+tgi:
+  enabled: false  # Disable TGI since we're using vLLM
+vllm:
+  enabled: true
+  LLM_MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
+  port: 8000
+  shmSize: 128Gi
+  resources:
+    limits:
+      cpu: 6
+      memory: 8Gi
+
+# Disable Redis since we're using Milvus
 redis-vector-db:
   enabled: false
+
+# Enable and configure Milvus as the vector database
 milvus:
   enabled: true
+  # Default Milvus standalone port
+  port: 19530
+  # Use standalone mode for simpler deployment
+  cluster:
+    enabled: false
+  # Standalone Milvus configuration
+  standalone:
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    persistence:
+      enabled: false  # For testing. Enable for production with proper storage
 
+# Configure data-prep service to use Milvus backend
 data-prep:
   DATAPREP_BACKEND: "MILVUS"
   COLLECTION_NAME: "rag_milvus"
+  # Default data-prep service port
+  service:
+    port: 6007
+
+# Configure retriever service to use Milvus backend
 retriever-usvc:
   RETRIEVER_BACKEND: "MILVUS"
   COLLECTION_NAME: "rag_milvus"
+  # Default retriever service port
+  service:
+    port: 7000
+
+# Enable TEI embedding and reranking services
+tei:
+  enabled: true
+  port: 2081
+teirerank:
+  enabled: true
+  port: 2082

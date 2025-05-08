@@ -84,12 +84,16 @@ vllm:
   port: 8000 # container port
   shmSize: 128Gi
   VLLM_TORCH_PROFILER_DIR: "/tmp/vllm_profile"
+  resources:
+    limits:
+      cpu: 6
+      memory: 8Gi
 tei:
   enabled: true
-  port: 2081 # container port
+  port: 2081 # container and service port must be > 1024
 teirerank:
   enabled: true
-  port: 2082 # container port
+  port: 2082 # container and service port must be > 1024
 
 data-prep:
   # the following are for redis-vector-db

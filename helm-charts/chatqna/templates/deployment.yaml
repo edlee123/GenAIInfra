@@ -74,7 +74,7 @@ spec:
               value: {{ .Release.Name }}-teirerank
             - name: RERANK_SERVER_PORT
               # value: "8080"
-              value: "2082"
+              value: "2082" # binding ports must be > 1024
             - name: RETRIEVER_SERVICE_HOST_IP
               value: {{ .Release.Name }}-retriever-usvc
             - name: RETRIEVER_SERVICE_PORT
