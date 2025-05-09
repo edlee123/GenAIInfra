@@ -39,31 +39,19 @@ spec:
               {{- if eq .Values.CHATQNA_TYPE "CHATQNA_FAQGEN"}}
               value: {{ .Release.Name }}-llm-uservice
               {{- else }}
-              {{- if .Values.vllm.enabled }}
+              {{- $modelcarHost := (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).host }}
+              {{- if $modelcarHost }}
+              value: {{ $modelcarHost | quote }}
+              {{- else if .Values.vllm.enabled }}
               value: {{ .Release.Name }}-vllm
               {{- else }}
               value: {{ .Release.Name }}-tgi
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
-              value: "8080"  # Changed from 80
-              {{- if .Values.modelcar }}
-              {{- if .Values.modelcar.endpoints }}
-              {{- if .Values.modelcar.endpoints.llm }}
-              {{- if .Values.modelcar.endpoints.llm.port }}
-              value: {{ .Values.modelcar.endpoints.llm.port | quote }}
-              {{- else }}
-              value: "8080"  # Changed from 80
-              {{- end }}
-              {{- else }}
-              value: "8080"  # Changed from 80
-              {{- end }}
-              {{- else }}
-              value: "8080"  # Changed from 80
-              {{- end }}
-              {{- else }}
-              value: "8080"  # Changed from 80
-              {{- end }}
+              # value: "8080"  # Changed from 80
+              value: {{ (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).port | default 8080 | quote }}
+              # {{ .Values.modelcar.endpoints.llm.port | default 8080 | quote }}
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
