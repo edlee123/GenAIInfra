@@ -49,7 +49,6 @@ spec:
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
-              # value: "8080"  # Changed from 80
               value: {{ (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).port | default 8080 | quote }}
               # {{ .Values.modelcar.endpoints.llm.port | default 8080 | quote }}
             - name: LLM_MODEL
