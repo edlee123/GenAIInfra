@@ -1,0 +1,123 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Global configuration
+global:
+  HUGGINGFACEHUB_API_TOKEN: "${HFTOKEN}"
+  HF_TOKEN: "${HFTOKEN}"
+
+# LLM Configuration - Using vLLM
+tgi:
+  enabled: false  # Disable TGI since we're using vLLM
+vllm:
+  enabled: true
+  LLM_MODEL_ID: "meta-llama/Meta-Llama-3-8B-Instruct"
+  port: 8000
+  shmSize: 128Gi
+  # Configure vLLM resources
+  resources:
+    requests:
+      cpu: "24"
+      memory: "48Gi"
+    limits:
+      cpu: "32"
+      memory: "64Gi"
+
+# Disable Redis and Milvus since we're using Qdrant
+redis-vector-db:
+  enabled: false
+milvus:
+  enabled: false
+
+# Enable and configure Qdrant as the vector database
+qdrant:
+  enabled: true
+  port: 6333
+  tag: "v1.13.1"
+  # Use standalone mode for simpler deployment
+  config:
+    cluster:
+      enabled: false
+  # Configure Qdrant resources
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+  # Security context for OpenShift compatibility
+  securityContext:
+    fsGroup: 1001080000
+  podSecurityContext:
+    fsGroup: 1001080000
+  containerSecurityContext:
+    runAsUser: 1001080000
+    runAsNonRoot: true
+    runAsGroup: 1001080000
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+  # Fixed imagePullSecrets format
+  imagePullSecrets:
+    - name: regcred
+
+# Configure data-prep service to use Qdrant backend
+data-prep:
+  DATAPREP_BACKEND: "QDRANT"
+  COLLECTION_NAME: "rag-qdrant"
+  QDRANT_PORT: 6333
+  # Default data-prep service port
+  service:
+    port: 6007
+
+# Configure retriever service to use Qdrant backend
+retriever-usvc:
+  RETRIEVER_BACKEND: "QDRANT"
+  QDRANT_INDEX_NAME: "rag-qdrant"
+  QDRANT_PORT: 6333
+  # Default retriever service port
+  service:
+    port: 7000
+
+# Enable TEI embedding and reranking services
+tei:
+  enabled: true
+  port: 2081
+teirerank:
+  enabled: true
+  port: 2082
+
+# Configure UI with RedHat-compatible image
+chatqna-ui:
+  image:
+    # modified image for redhat security
+    repository: edlee123/chatqna-ui
+    tag: "latest"
+  containerPort: 5173
+
+# Main chatqna configuration (megaservice)
+image:
+  repository: opea/chatqna
+  tag: "1.2"
+
+# Add security context and volumes for npm cache
+podSecurityContext:
+  fsGroup: 1001080000
+securityContext:
+  runAsUser: 1001080000
+  runAsGroup: 1001080000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+
+# Add volume mount for npm cache
+volumeMounts:
+  - name: npm-cache
+    mountPath: /.npm
+volumes:
+  - name: npm-cache
+    emptyDir: {}
