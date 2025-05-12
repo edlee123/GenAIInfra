@@ -4,7 +4,7 @@
 
 | Compute | Vector DB | Model |
 |---------|-----------|-------|
-| **Xeon** | rh-milvus.yaml<br>rh-qdrant.yaml<br>values.yaml (redis default) | rh-xeon-granite.yaml<br>rh-xeon-qwen.yaml<br>rh-xeon-llama.yaml<br>rh-xeon-mistral.yaml |
+| **Xeon** | rh-milvus.yaml<br>rh-qdrant.yaml<br>values.yaml (redis default) | rh-xeon-granite.yaml<br>rh-xeon-qwen.yaml<br>rh-xeon-llama.yaml<br>rh-xeon-deepseek.yaml |
 | **Gaudi** | rh-milvus.yaml<br>rh-qdrant.yaml<br>values.yaml (redis default) | rh-gaudi-granite.yaml<br>rh-gaudi-qwen.yaml<br>rh-gaudi-llama.yaml<br>rh-gaudi-mistral.yaml |
 
 ## Example
