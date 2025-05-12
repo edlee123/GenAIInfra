@@ -11,8 +11,12 @@
 
 ```bash
 export HFTOKEN=<huggingface token>
-helm install <name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN
+helm install <release-name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN -n <namespace>
 ```
+
+**Notes:**
+- `<release-name>` is a name you choose for this specific deployment (e.g., "chatqna-demo", "llama-milvus"). Helm uses this name to track the installation and manage updates/rollbacks.
+- It's important to specify the namespace (`-n <namespace>`) where you want to deploy the application. This should be the same namespace where you've set up your service account and Docker registry secret.
 
 ## Setup Notes
 
