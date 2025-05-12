@@ -55,7 +55,7 @@ helm install <release-name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.
 ## Setup Notes
 
 1. Above was tested with privileged service account:
-   - `oc create serviceaccount chatqna-sa`
+   - `oc create serviceaccount <serviceaccount>`
    - `oc adm policy add-scc-to-user privileged -z <serviceaccount> -n <namespace>`
 
 2. Added docker hub secret 'regcred', since images from docker hub can have rate limits:
