@@ -66,3 +66,5 @@ helm install <release-name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.
    - Xeon – consider setting VLLM_CPU_KVCACHE_SPACE for long context models like granite.
 
 4. Set up the persistent nfspvc.yaml e.g., storageClassName: "nfs-engg". See the [README.md](https://github.com/edlee123/GenAIInfra/blob/redhat_demo/helm-charts/README.md?plain=1#L150)
+
+5. Update dependency: cd GenAIInfra/helm-charts && chmod +x update_dependency.sh && ./update_dependency.sh
