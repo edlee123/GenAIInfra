@@ -24,7 +24,7 @@ helm install <name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.HUGGINGF
    - `kubectl create secret docker-registry regcred --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email> -n <your-namespace>`
 
 3. Set up model cars in OpenShift AI (redhat-ai-services/modelcar-catalog).
-   - Gaudi – make sure to set: kserve time out, and gpu- model-max-len.
-   - Xeon – cpu kv cache.
+   - Gaudi – make sure to set: kserve time out, and gpu-memory-utilization, model-max-len.
+   - Xeon – consider setting VLLM_CPU_KVCACHE_SPACE for long context models like granite.
 
-4. Set up the persistent nfspvc.yaml e.g., storageClassName: "nfs-engg". See the README.md
+4. Set up the persistent nfspvc.yaml e.g., storageClassName: "nfs-engg". See the [README.md](https://github.com/edlee123/GenAIInfra/blob/redhat_demo/helm-charts/README.md?plain=1#L150)
