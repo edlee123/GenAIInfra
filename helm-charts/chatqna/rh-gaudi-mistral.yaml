@@ -1,0 +1,11 @@
+
+vllm:
+  enabled: false
+tgi:
+  enabled: false
+
+modelcar:
+  endpoints:
+    llm:
+      host: "granite-30-8b-instruct-predictor.ed-opea-modelcar.svc.cluster.local"
+      port: "80"
