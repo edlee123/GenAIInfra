@@ -1,0 +1,128 @@
+# Copyright (C) 2025 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Disable Redis since we're using Milvus
+redis-vector-db:
+  enabled: false
+
+# Enable and configure Milvus as the vector database
+milvus:
+  enabled: true
+  port: 19530
+  cluster:
+    enabled: false
+  standalone:
+    resources:
+      requests:
+        memory: "8Gi"    # Increased from 4Gi
+        cpu: "4"         # Increased from 2
+      limits:
+        memory: "16Gi"   # Increased from 8Gi
+        cpu: "8"         # Increased from 4
+    persistence:
+      enabled: false  # For testing. Enable for production with proper storage
+    securityContext:
+      fsGroup: 1001080000
+    podSecurityContext:
+      fsGroup: 1001080000
+    containerSecurityContext:
+      runAsUser: 1001080000
+      runAsNonRoot: true
+      runAsGroup: 1001080000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+    imagePullSecrets:
+      - name: regcred
+  etcd:
+    replicaCount: 1
+    persistence:
+      enabled: false
+    securityContext:
+      fsGroup: 1000870000
+    podSecurityContext:
+      fsGroup: 1000870000
+    containerSecurityContext:
+      runAsUser: 1000870000
+      runAsNonRoot: true
+      runAsGroup: 1000870000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+    imagePullSecrets:
+      - name: regcred
+  pulsar:
+    enabled: false
+  minio:
+    mode: standalone
+    persistence:
+      enabled: false
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    securityContext:
+      fsGroup: 1001080000
+    podSecurityContext:
+      fsGroup: 1001080000
+    containerSecurityContext:
+      runAsUser: 1001080000
+      runAsNonRoot: true
+      runAsGroup: 1001080000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+    imagePullSecrets:
+      - name: regcred
+    service:
+      type: ClusterIP
+      port: 9000
+      nodePort: null
+    tls:
+      enabled: false
+      certSecret: ""
+      publicCrt: ""
+      privateKey: ""
+    mountPath: "/tmp/minio"
+    environment:
+      MINIO_UPDATE: "off"
+      MINIO_BROWSER: "on"
+      MINIO_PROMETHEUS_AUTH_TYPE: "public"
+
+# Configure data-prep service to use Milvus backend
+data-prep:
+  DATAPREP_BACKEND: "MILVUS"
+  COLLECTION_NAME: "rag_milvus"
+  service:
+    port: 6007
+  # Add resources for faster document processing
+  resources:
+    requests:
+      cpu: "4"
+      memory: "8Gi"
+    limits:
+      cpu: "8"
+      memory: "16Gi"
+
+# Configure retriever service to use Milvus backend
+retriever-usvc:
+  RETRIEVER_BACKEND: "MILVUS"
+  COLLECTION_NAME: "rag_milvus"
+  service:
+    port: 7000
+  # Add resources for faster retrieval
+  resources:
+    requests:
+      cpu: "4"
+      memory: "8Gi"
+    limits:
+      cpu: "8"
+      memory: "16Gi"
+
+

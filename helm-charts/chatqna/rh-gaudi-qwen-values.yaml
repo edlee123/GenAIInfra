@@ -7,5 +7,9 @@ tgi:
 modelcar:
   endpoints:
     llm:
-      host: "https://qwen25-05b-instruct.ed-modelcar-atacama.svc.cluster.local"
+      host: "knative-local-gateway.istio-system.svc.cluster.local"
       port: "80"
+      headers:
+        Host: "qwen25-05b-instruct-predictor.ed-modelcar-atacama.svc.cluster.local"
+        KServe-Isvc-Name: "qwen25-05b-instruct"
+        KServe-Isvc-Namespace: "ed-modelcar-atacama"
