@@ -49,8 +49,15 @@ spec:
               {{- end }}
               {{- end }}
             - name: LLM_SERVER_PORT
-              value: {{ (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).port | default 8080 | quote }}
-              # {{ .Values.modelcar.endpoints.llm.port | default 8080 | quote }}
+              # value: {{ (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).port | default 8080 | quote }}
+              
+              {{- $modelcarPort := (((.Values.modelcar | default dict).endpoints | default dict).llm | default dict).port }}
+              {{- if $modelcarPort }}
+              value: {{ $modelcarPort | quote }}
+              {{- else }}
+              value: "8080"
+              {{- end }}
+              
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
@@ -60,8 +67,8 @@ spec:
             - name: RERANK_SERVER_HOST_IP
               value: {{ .Release.Name }}-teirerank
             - name: RERANK_SERVER_PORT
-              # value: "8080"
-              value: "2082" # binding ports must be > 1024
+              # value: "2082"
+              value: "80" # Connects to TEI rerank service port whereas the SERVICE port is the OPEA wrapper
             - name: RETRIEVER_SERVICE_HOST_IP
               value: {{ .Release.Name }}-retriever-usvc
             - name: RETRIEVER_SERVICE_PORT
@@ -70,7 +77,7 @@ spec:
               value: {{ .Release.Name }}-tei
             - name: EMBEDDING_SERVER_PORT
               # value: "8080"
-              value: "2081"
+              value: "80" # Connects to TEI service port whereas the SERVICE port is the OPEA wrapper.
             - name: GUARDRAIL_SERVICE_HOST_IP
               value: {{ .Release.Name }}-guardrails-usvc
             - name: GUARDRAIL_SERVICE_PORT
@@ -88,7 +95,7 @@ spec:
               value: {{ .Release.Name }}-embedding-usvc
             - name: EMBEDDING_SERVICE_PORT
               # value: "6000"
-              value: "2082"
+              value: "2081"
             {{- if .Values.LOGFLAG }}
             - name: LOGFLAG
               value: {{ .Values.LOGFLAG | quote }}

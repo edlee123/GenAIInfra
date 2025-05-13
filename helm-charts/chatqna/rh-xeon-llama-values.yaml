@@ -6,6 +6,19 @@ global:
   HUGGINGFACEHUB_API_TOKEN: "${HFTOKEN}"
   HF_TOKEN: "${HFTOKEN}"
 
+# Model downloader configuration
+modelDownloader:
+  securityContext:
+    runAsUser: 1001080000
+    runAsGroup: 1001080000
+    allowPrivilegeEscalation: false
+    capabilities:
+      add:
+        - DAC_OVERRIDE
+        - FOWNER
+      drop:
+        - ALL
+
 # LLM Configuration - Using vLLM
 tgi:
   enabled: false  # Disable TGI since we're using vLLM
@@ -17,39 +30,43 @@ vllm:
   # Configure vLLM resources optimized for Xeon processors
   resources:
     requests:
-      cpu: "32"
-      memory: "64Gi"
-    limits:
       cpu: "48"
       memory: "96Gi"
+    limits:
+      cpu: "64"
+      memory: "128Gi"
 
 # TEI embedding service configuration
 tei:
   enabled: true
-  port: 2081
   EMBEDDING_MODEL_ID: "BAAI/bge-base-en-v1.5"
   # Resources optimized for Xeon processors
   resources:
     requests:
-      cpu: "8"
-      memory: "16Gi"
-    limits:
-      cpu: "16"
+      cpu: "12"
       memory: "24Gi"
+    limits:
+      cpu: "24"
+      memory: "32Gi"
+  service:
+    port: 80  # Service port (forwards to container port 2081)
+    targetPort: 2081  # Container port where TEI listens
 
 # TEI reranking service configuration
 teirerank:
   enabled: true
-  port: 2082
   RERANK_MODEL_ID: "BAAI/bge-reranker-base"
   # Resources optimized for Xeon processors
   resources:
     requests:
-      cpu: "8"
-      memory: "16Gi"
-    limits:
-      cpu: "16"
+      cpu: "12"
       memory: "24Gi"
+    limits:
+      cpu: "24"
+      memory: "32Gi"
+  service:
+    port: 80  # Service port (forwards to container port 2082)
+    targetPort: 2082  # Container port where TEIRerank listens
 
 # Security context for OpenShift compatibility
 podSecurityContext:

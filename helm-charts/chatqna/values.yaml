@@ -44,14 +44,14 @@ securityContext:
   # oc adm policy add-scc-to-user privileged -z <my service account> -n <my namespace>
   privileged: false
 
-
+# moved to rh-gaudi-xxx-values.yaml
 # ModelCar endpoints configuration (commented out until ModelCar is available)
 # If uncommented will override the default endpoints for LLM, embedding, and reranker in deployment_modelcar.yaml
-modelcar:
-  endpoints:
-    llm:
-      host: "granite-30-8b-instruct-predictor.ed-opea-modelcar.svc.cluster.local"
-      port: "80"
+# modelcar:
+#   endpoints:
+#     llm:
+#       host: "granite-30-8b-instruct-predictor.ed-opea-modelcar.svc.cluster.local"
+#       port: "80"
 
 # service port -> container port (aka. targetPort)
 # Container port - using containerPorts reference

@@ -7,5 +7,5 @@ tgi:
 modelcar:
   endpoints:
     llm:
-      host: "granite-30-8b-instruct-predictor.ed-opea-modelcar.svc.cluster.local"
+      host: "https://qwen25-05b-instruct.ed-modelcar-atacama.svc.cluster.local"
       port: "80"
