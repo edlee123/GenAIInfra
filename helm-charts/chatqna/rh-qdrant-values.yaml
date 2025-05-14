@@ -35,22 +35,47 @@ qdrant:
     limits:
       memory: "8Gi"
       cpu: "4"
-  # Security context for OpenShift compatibility
+  
+  # Storage configuration - using emptyDir for demo purposes
+  persistence:
+    enabled: false  # Disable persistent storage  
+
+  # Disable the default init container since the ensure-dir-ownership init container converts long UIDs into scientific notation.
+  updateVolumeFsOwnership: false
+  
+  # Add our own init container with explicit UID
+  additionalInitContainers:
+    - name: ensure-dir-ownership
+      image: "docker.io/qdrant/qdrant:v1.13.1"
+      command: ["/bin/sh"]
+      args:
+        - -ec
+        - |
+          QDRANT_UID=1000870000
+          echo "Setting ownership to $QDRANT_UID:$QDRANT_UID"
+          chown -R "$QDRANT_UID:$QDRANT_UID" /qdrant/storage /qdrant/snapshots
+      volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+        - name: qdrant-snapshots
+          mountPath: /qdrant/snapshots
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+
+  # Configure Qdrant security contexts for OpenShift with fixed UID
   securityContext:
-    fsGroup: 1001080000
+    fsGroup: 1000870000
   podSecurityContext:
-    fsGroup: 1001080000
+    fsGroup: 1000870000
   containerSecurityContext:
-    runAsUser: 1001080000
+    runAsUser: 1000870000
+    runAsGroup: 1000870000
     runAsNonRoot: true
-    runAsGroup: 1001080000
     allowPrivilegeEscalation: false
     capabilities:
       drop:
       - ALL
-  # Fixed imagePullSecrets format
-  imagePullSecrets:
-    - name: regcred
 
 # Configure data-prep service to use Qdrant backend
 data-prep:
@@ -110,4 +135,8 @@ volumeMounts:
     mountPath: /.npm
 volumes:
   - name: npm-cache
+    emptyDir: {}
+  - name: qdrant-storage
+    emptyDir: {}
+  - name: qdrant-snapshots
     emptyDir: {}
