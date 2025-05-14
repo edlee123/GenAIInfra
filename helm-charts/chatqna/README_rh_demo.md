@@ -4,47 +4,58 @@
 
 | Compute | Vector DB | Model |
 |---------|-----------|-------|
-| **Xeon** | rh-milvus.yaml<br>rh-qdrant.yaml<br>values.yaml (redis default) | rh-xeon-granite.yaml<br>rh-xeon-qwen.yaml<br>rh-xeon-llama.yaml<br>rh-xeon-deepseek.yaml |
-| **Gaudi** | rh-milvus.yaml<br>rh-qdrant.yaml<br>values.yaml (redis default) | rh-gaudi-granite.yaml<br>rh-gaudi-qwen.yaml<br>rh-gaudi-llama.yaml<br>rh-gaudi-mistral.yaml |
-
-## Example
-
-```bash
-export HFTOKEN=<huggingface token>
-helm install <release-name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN -n <namespace>
-```
-
-**Notes:**
-- `<release-name>` is a name you choose for this specific deployment (e.g., "chatqna-demo", "llama-milvus"). Helm uses this name to track the installation and manage updates/rollbacks.
-- It's important to specify the namespace (`-n <namespace>`) where you want to deploy the application. This should be the same namespace where you've set up your service account and Docker registry secret.
+| **Xeon** | rh-milvus-values.yaml<br>rh-qdrant-values.yaml<br>values.yaml (redis default) | rh-xeon-granite-values.yaml<br>rh-xeon-qwen-values.yaml<br>rh-xeon-llama-values.yaml<br>rh-xeon-deepseek-values.yaml |
+| **Gaudi** | rh-milvus-values.yaml<br>rh-qdrant-values.yaml<br>values.yaml (redis default) | rh-gaudi-granite-values.yaml<br>rh-gaudi-qwen-values.yaml<br>rh-gaudi-llama-values.yaml<br>rh-gaudi-mistral-values.yaml |
 
 ## Deployment Process
 
 1. Choose your vector database configuration:
-   - `rh-milvus.yaml` - For Milvus vector database
-   - `rh-qdrant.yaml` - For Qdrant vector database
+   - `rh-milvus-values.yaml` - For Milvus vector database
+   - `rh-qdrant-values.yaml` - For Qdrant vector database
    - `values.yaml` - For Redis vector database (default)
 
 2. Choose your compute platform and model:
-   - For Xeon: `rh-xeon-llama.yaml`, `rh-xeon-qwen.yaml`, etc.
-   - For Gaudi: `rh-gaudi-llama.yaml`, `rh-gaudi-qwen.yaml`, etc.
+   - For Xeon: `rh-xeon-llama-values.yaml`, `rh-xeon-qwen-values.yaml`, etc.
+   - For Gaudi: `rh-gaudi-llama-values.yaml`, `rh-gaudi-qwen-values.yaml`, etc.
 
 3. Deploy with Helm:
+
+   First, set your Hugging Face token:
    ```bash
-   # Example for Milvus + Xeon + Llama
-   helm install chatqna-milvus-llama -f rh-milvus.yaml -f rh-xeon-llama.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN -n chatqna-demo
-   
-   # Example for Qdrant + Xeon + Qwen
-   helm install chatqna-qdrant-qwen -f rh-qdrant.yaml -f rh-xeon-qwen.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN -n chatqna-demo
-   
-   # Example for Redis (default) + Gaudi + Mistral
-   helm install chatqna-redis-mistral -f rh-gaudi-mistral.yaml --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN --set global.HF_TOKEN=$HFTOKEN -n chatqna-demo
+   export HFTOKEN=<huggingface token>
    ```
+
+   Example deployments:
+
+   a) Using Qdrant vector DB with Xeon and SMOL model: 
+   ```bash
+   cd GenAIInfra/helm-charts/chatqna
+   helm upgrade <release-name> . -f rh-qdrant-values.yaml -f rh-xeon-smol-values.yaml \
+     --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN,global.HF_TOKEN=$HFTOKEN -n <namespace>
+   ```
+
+   b) Using Redis Vector DB (default) with Xeon and SMOL model:
+   ```bash
+   cd GenAIInfra/helm-charts/chatqna
+   helm upgrade <release-name> . -f rh-xeon-smol-values.yaml \
+     --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN,global.HF_TOKEN=$HFTOKEN -n <namespace>
+   ```
+
+   c) Using Milvus with Xeon and any other model:
+   ```bash
+   cd GenAIInfra/helm-charts/chatqna
+   helm upgrade <release-name> . -f rh-milvus-values.yaml -f rh-xeon-<model>-values.yaml \
+     --set global.HUGGINGFACEHUB_API_TOKEN=$HFTOKEN,global.HF_TOKEN=$HFTOKEN -n <namespace>
+   ```
+   
+   **Notes:**
+   - `<release-name>` is a name you choose for this specific deployment (e.g., "chatqna-demo", "llama-milvus")
+   - Always specify the namespace (`-n <namespace>`) where you've set up your service account and Docker registry secret
 
 4. Check deployment status:
    ```bash
-   helm list -n chatqna-demo
-   kubectl get pods -n chatqna-demo
+   helm list -n <namespace>
+   kubectl get pods -n <namespace>
    ```
 
 5. To uninstall:
@@ -83,4 +94,4 @@ helm install <release-name> -f rh-milvus.yaml -f rh-xeon-xxx1.yaml --set global.
 > EOF
 ```
 
-5. Update dependency: cd GenAIInfra/helm-charts && chmod +x update_dependency.sh && ./update_dependency.sh
+5. Update dependency: cd GenAIInfra/helm-charts && chmod +x update_dependency.sh && ./update_dependency.sh  && helm dependency update chatqna
