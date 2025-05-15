@@ -61,8 +61,12 @@ spec:
             - name: LLM_MODEL
               {{- if .Values.vllm.enabled }}
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
-              {{- else }}
+              {{- else if .Values.tgi.enabled }}
               value: {{ .Values.tgi.LLM_MODEL_ID | quote }}
+              {{- else if .Values.llmuservice.enabled }}
+              value: {{ .Values.llmuservice.LLM_MODEL_ID | quote }}
+              {{- else }}
+              value: {{ "meta-llama/Meta-Llama-3-8B-Instruct" }}
               {{- end }}
             - name: RERANK_SERVER_HOST_IP
               value: {{ .Release.Name }}-teirerank
