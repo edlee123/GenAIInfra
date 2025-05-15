@@ -60,6 +60,7 @@ qdrant:
         - name: qdrant-snapshots
           mountPath: /qdrant/snapshots
       securityContext:
+        # init container runs briefly as root to set up permission for main container.
         runAsUser: 0
         runAsGroup: 0
 
@@ -117,7 +118,7 @@ image:
   repository: opea/chatqna
   tag: "1.2"
 
-# Add security context and volumes for npm cache
+# Add security context
 podSecurityContext:
   fsGroup: 1001080000
 securityContext:
@@ -129,13 +130,8 @@ securityContext:
     drop:
     - ALL
 
-# Add volume mount for npm cache
-volumeMounts:
-  - name: npm-cache
-    mountPath: /.npm
+# Configure volumes for Qdrant storage
 volumes:
-  - name: npm-cache
-    emptyDir: {}
   - name: qdrant-storage
     emptyDir: {}
   - name: qdrant-snapshots
