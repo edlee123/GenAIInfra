@@ -12,5 +12,6 @@ modelcar:
     llm:
       host: "standard-llama-32-1b-instruct-predictor.ed-modelcar.svc.cluster.local"
       port: "8080"
+      model: "standard-llama-32-1b-instruct"  # Match the model name from the LLM service
       api_type: "vllm"  # Specify we're using vLLM API
       api_base: "/v1"   # vLLM uses OpenAI-compatible /v1 endpoints
