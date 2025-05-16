@@ -63,8 +63,8 @@ spec:
               value: {{ .Values.vllm.LLM_MODEL_ID | quote }}
               {{- else if .Values.tgi.enabled }}
               value: {{ .Values.tgi.LLM_MODEL_ID | quote }}
-              {{- else if .Values.llmuservice.enabled }}
-              value: {{ .Values.llmuservice.LLM_MODEL_ID | quote }}
+              {{- else if .Values.endpoint.enabled }}
+              value: {{ .Values.endpoint.LLM_MODEL_ID | quote }}
               {{- else }}
               value: {{ "meta-llama/Meta-Llama-3-8B-Instruct" }}
               {{- end }}

@@ -4,7 +4,7 @@ vllm:
 tgi:
   enabled: false
 
-llmuservice:
+endpoint:
   enabled: true
   LLM_MODEL_ID: "gaudi-demo-granite-31-8b-instruct"
 
