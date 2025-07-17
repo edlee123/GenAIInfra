@@ -14,7 +14,7 @@ COMPUTE_OPTIONS = ["Xeon", "Gaudi"]
 
 MODEL_OPTIONS = {
     "Xeon": ["smol", "qwen", "granite", "deepseek"],
-    "Gaudi": ["granite", "qwen", "llama", "mistral"]
+    "Gaudi": ["granite", "qwen", "llama"]
 }
 
 # Xeon smol = 
@@ -172,7 +172,7 @@ def start_port_forward(namespace, release_name):
     except Exception as e:
         return None, f"Error setting up port-forward: {str(e)}"
 
-def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progress(track_tqdm=True)):
+def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progress()):
     """Deploy using Helm with the selected configuration."""
     print(f"\nStarting deployment with:")
     print(f"- Compute: {compute}")
@@ -183,7 +183,7 @@ def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progres
 
     if not namespace or not release_name:
         print("Error: Missing required fields")
-        return "Error: Namespace and Release Name are required!", ""
+        return "Error: Namespace and Release Name are required!"
     
     progress(0, desc="Validating configuration...")
     print("Validating configuration and files...")
@@ -193,23 +193,23 @@ def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progres
     
     if not model_values.exists():
         print(f"Error: Model values file not found at {model_values}")
-        return f"Error: Model values file not found: {model_values}", ""
+        return f"Error: Model values file not found: {model_values}"
     if not db_values.exists():
         print(f"Error: Database values file not found at {db_values}")
-        return f"Error: Database values file not found: {db_values}", ""
+        return f"Error: Database values file not found: {db_values}"
     
     progress(0.2, desc="Checking Hugging Face token...")
     # Check for HFTOKEN
     hf_token = os.getenv("HFTOKEN")
     if not hf_token:
-        return "Error: HFTOKEN environment variable not set!", ""
+        return "Error: HFTOKEN environment variable not set!"
 
     print("Checking HFTOKEN environment variable...")
     # Check for HFTOKEN
     hf_token = os.getenv("HFTOKEN")
     if not hf_token:
         print("Error: HFTOKEN environment variable not set")
-        return "Error: HFTOKEN environment variable not set!", ""
+        return "Error: HFTOKEN environment variable not set!"
 
     progress(0.4, desc="Preparing Helm command...")
     print("Preparing Helm command...")
@@ -242,7 +242,7 @@ def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progres
         print(f"Helm command output:\n{result.stdout}")
         if result.returncode != 0:
             print(f"Helm deployment failed with error:\n{result.stderr}")
-            return f"Error during deployment:\n{result.stderr}", ""
+            return f"Error during deployment:\n{result.stderr}"
         print("Helm deployment completed successfully")
         
         progress(0.8, desc="Checking pod status...")
@@ -256,36 +256,57 @@ def deploy_helm(compute, db, model, namespace, release_name, progress=gr.Progres
         # Start port forwarding
         port_forward_process, url = start_port_forward(namespace, release_name)
         
+        global app_url
         if port_forward_process:
             progress(1.0, desc="Deployment complete!")
-            return (
-                f"""Deployment successful!
+            # Store URL in a global variable for the URL component to use
+            app_url = url
+            
+            return f"""Deployment successful!
 
                     Pod Status:
-                    {pod_status.stdout}
-                    
-                    App URL: {url}""",
-                ""
-            )
+                    {pod_status.stdout}"""
         else:
             progress(1.0, desc="Deployment complete with warnings...")
-            return (
-                f"""Deployment successful, but port-forward failed!
+            app_url = None
+            
+            return f"""Deployment successful, but port-forward failed!
 
                 Pod Status:
-                {pod_status.stdout}
-
-                Port-forward error: {url}""",
-                                ""
-                )
+                {pod_status.stdout}"""
     
     except subprocess.CalledProcessError as e:
-        return f"Error executing command:\n{e.stderr}", ""
+        return f"Error executing command:\n{e.stderr}"
     except Exception as e:
-        return f"Error: {str(e)}", ""
+        return f"Error: {str(e)}"
+
+# Global variable to store app URL
+app_url = None
+
+def get_app_url_html():
+    """Generate HTML for the app URL link."""
+    global app_url
+    if not app_url:
+        return "<p style='color: #DC3545;'>No application URL available. Port forwarding may have failed.</p>"
+    return f'<a href="{app_url}" target="_blank" style="font-size: 16px; color: #007BFF; text-decoration: underline;">{app_url} (Click to open app)</a>'
 
 # Create the Gradio interface
-with gr.Blocks(title="Red Hat Demo Deployer") as app:
+with gr.Blocks(title="Red Hat Demo Deployer", css="""
+    .output-link {
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    .output-link a {
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .output-link a:hover {
+        text-decoration: underline;
+    }
+""") as app:
     gr.Markdown("# Red Hat Demo Deployment Interface")
     
     def list_port_forwards():
@@ -327,21 +348,41 @@ with gr.Blocks(title="Red Hat Demo Deployer") as app:
         
         # Right column for output
         with gr.Column(scale=1):
-            # Single group for all output elements
-            with gr.Group() as output_group:
-                gr.Markdown("### Deployment Progress")
-                output = gr.Textbox(lines=10, interactive=True)
-            link_output = gr.HTML(elem_classes=["output-link"])
+            # Split into separate groups to isolate progress bars
+            with gr.Group():
+                gr.Markdown("### Deployment Output")
+                output = gr.Textbox(lines=10, interactive=True, label="Deployment Progress")
+            
+            # Separate group for Application Access to avoid shared progress bar
+            with gr.Group():
+                gr.Markdown("### Application Access")
+                link_output = gr.HTML(
+                    value="<p>Deploy an application to see the access URL here</p>",
+                    elem_classes=["output-link"], 
+                    label="App URL"
+                )
             
     # Update model choices when compute changes
     compute.change(update_model_choices, inputs=[compute], outputs=[model])
     
-    # Deploy button click handler
+    # Update the URL link independently
+    def update_url_link():
+        return get_app_url_html()
+    
+    # Deploy button click handler - only connected to the deployment output
     deploy_btn.click(
         fn=deploy_helm,
         inputs=[compute, db, model, namespace, release_name],
-        outputs=[output, link_output],
+        outputs=[output],
         api_name="deploy"
+    )
+    
+    # Set up a separate event to update the URL link after deployment
+    deploy_btn.click(
+        fn=update_url_link,
+        inputs=[],
+        outputs=[link_output],
+        api_name="update_url"
     )
 
 if __name__ == "__main__":
