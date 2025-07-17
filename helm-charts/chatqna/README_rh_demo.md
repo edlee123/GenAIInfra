@@ -3,18 +3,15 @@
 
 ## Setup Notes
 
-1. Above was tested with privileged service account:
+1. Privileged service account:
    - `oc create serviceaccount <serviceaccount>`
    - `oc adm policy add-scc-to-user privileged -z <serviceaccount> -n <namespace>`
 
 2. Added docker hub secret 'regcred', since images from docker hub can have rate limits:
    - `kubectl create secret docker-registry regcred --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email> -n <your-namespace>`
 
-3. Set up model cars in OpenShift AI (redhat-ai-services/modelcar-catalog).
-   - Gaudi – make sure to set: kserve time out, and gpu-memory-utilization, model-max-len.
-   - Xeon – consider setting VLLM_CPU_KVCACHE_SPACE for long context models like granite.
 
-4. Set up the persistent nfspvc.yaml e.g., storageClassName: "nfs-engg". See the [README.md](https://github.com/edlee123/GenAIInfra/blob/redhat_demo/helm-charts/README.md?plain=1#L150)
+3. Set up the Persistent Volume Claim. See the [README.md](https://github.com/edlee123/GenAIInfra/blob/redhat_demo/helm-charts/README.md?plain=1#L150)
 
 ```bash
 cat << EOF | kubectl apply -n ed-chatqna -f -
@@ -32,8 +29,16 @@ spec:
 EOF
 ```
 
-5. Update dependency: cd GenAIInfra/helm-charts && chmod +x update_dependency.sh && ./update_dependency.sh  && helm dependency update chatqna
+4. Update dependency: 
 
+```bash
+cd GenAIInfra/helm-charts && chmod +x update_dependency.sh && ./update_dependency.sh  && helm dependency update chatqna
+```
+
+
+5. Redhat KServe endpoints in OpenShift AI (redhat-ai-services/modelcar-catalog).
+   - Gaudi – make sure to set: kserve time out, and gpu-memory-utilization, model-max-len.
+   - Xeon – consider setting VLLM_CPU_KVCACHE_SPACE for long context models like granite.
 
 
 ## Deployment Values Matrix
